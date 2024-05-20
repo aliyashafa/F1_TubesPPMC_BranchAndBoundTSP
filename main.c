@@ -45,7 +45,7 @@ double haversine(double lat1, double lon1, double lat2, double lon2) {
     return R * c;
 }
 
-// Fungsi untuk men-delete tanda kutip dari string
+// Fungsi untuk menghapus tanda kutip dari string
 char* trimQuotes(char *str) {
     char *end;
     while (isspace((unsigned char)*str) || *str == '"') str++;
