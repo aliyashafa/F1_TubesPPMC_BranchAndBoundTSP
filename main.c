@@ -30,7 +30,7 @@ double bestRoute[MAX_CITIES + 1];
 double minDist = DBL_MAX;
 int startIndex = -1;
 
-// Function to calculate distance between two cities using Haversine formula
+// Fungsi untuk menghitung jarak antara dua kota menggunakan rumus Haversine
 double haversine(double lat1, double lon1, double lat2, double lon2) {
     double dlat = (lat2 - lat1) * M_PI / 180.0;
     double dlon = (lon1 - lon2) * M_PI / 180.0;
@@ -45,61 +45,47 @@ double haversine(double lat1, double lon1, double lat2, double lon2) {
     return R * c;
 }
 
-// Function to trim leading and trailing whitespace and quotes from a string
+// Fungsi untuk men-delete tanda kutip dari string
 char* trimQuotes(char *str) {
     char *end;
-
-    // Trim leading space and quotes
     while (isspace((unsigned char)*str) || *str == '"') str++;
-
-    if (*str == 0) // All spaces?
+    if (*str == 0)
         return str;
-
-    // Trim trailing space and quotes
     end = str + strlen(str) - 1;
     while (end > str && (isspace((unsigned char)*end) || *end == '"')) end--;
-
-    // Write new null terminator
     *(end + 1) = '\0';
-
     return str;
 }
 
-// Function to read cities from CSV file
+// Fungsi untuk membaca daftar kota dari file
 int readCities(const char *filename) {
     FILE *file = fopen(filename, "r");
     if (!file) {
         perror("Error opening file");
         return 0;
     }
-
     char line[1024];
     while (fgets(line, sizeof(line), file)) {
-        // Remove the newline character if it exists
         line[strcspn(line, "\n")] = '\0';
-
         char *token = strtok(line, ",\t");
         if (token != NULL) {
             strcpy(cities[numCities].name, trimQuotes(token));
         }
-
         token = strtok(NULL, ",\t");
         if (token != NULL) {
             cities[numCities].latitude = atof(trimQuotes(token));
         }
-
         token = strtok(NULL, ",\t");
         if (token != NULL) {
             cities[numCities].longitude = atof(trimQuotes(token));
         }
-
         numCities++;
     }
     fclose(file);
     return 1;
 }
 
-// Function to print the best route
+// Fungsi untuk mengeluarkan rute terbaik
 void printBestRoute() {
     printf("Best route found:\n");
     for (int i = 0; i <= numCities; i++) {
@@ -111,7 +97,7 @@ void printBestRoute() {
     printf("\nBest route distance: %.5f km\n", minDist);
 }
 
-// Recursive function to solve TSP using branch and bound
+// Fungsi rekursif algoritma Branch and Bound
 void tsp(int level, double currDist, int visited[], double currRoute[]) {
     if (level == numCities) {
         currDist += distMatrix[(int)currRoute[level - 1]][startIndex];
@@ -122,7 +108,6 @@ void tsp(int level, double currDist, int visited[], double currRoute[]) {
         }
         return;
     }
-
     for (int i = 0; i < numCities; i++) {
         if (!visited[i]) {
             visited[i] = 1;
@@ -133,56 +118,46 @@ void tsp(int level, double currDist, int visited[], double currRoute[]) {
     }
 }
 
-// Main function
+// Fungsi main
 int main() {
     char filename[50];
     char startCity[50];
-
     printf("Enter list of cities file name: ");
     scanf("%s", filename);
     if (!readCities(filename)) {
         return 1;
     }
-
     printf("Enter starting point: ");
     scanf("%s", startCity);
-
-    // Trim and clean the start city name
     char cleanStartCity[50];
     strcpy(cleanStartCity, trimQuotes(startCity));
-
-    // Find the index of the starting city
+    // Mencari index kota awal
     for (int i = 0; i < numCities; i++) {
         if (strcasecmp(cities[i].name, cleanStartCity) == 0) {
             startIndex = i;
             break;
         }
     }
-
     if (startIndex == -1) {
         printf("Starting city not found in the list.\n");
         return 1;
     }
-
-    // Build distance matrix
+    // Membuat matriks jarak
     for (int i = 0; i < numCities; i++) {
         for (int j = 0; j < numCities; j++) {
             distMatrix[i][j] = haversine(cities[i].latitude, cities[i].longitude, cities[j].latitude, cities[j].longitude);
         }
     }
-
     int visited[MAX_CITIES] = {0};
     double currRoute[MAX_CITIES + 1] = {0};
     currRoute[0] = startIndex;
     visited[startIndex] = 1;
-
+    // Menghitung waktu eksekusi program
     clock_t start = clock();
     tsp(1, 0, visited, currRoute);
     clock_t end = clock();
-
     printBestRoute();
     double timeElapsed = ((double)(end - start)) / CLOCKS_PER_SEC;
     printf("Time elapsed: %.10f s\n", timeElapsed);
-
     return 0;
 }
